@@ -9,7 +9,7 @@ RUN curl http://www.dotdeb.org/dotdeb.gpg | apt-key add -
 
 RUN apt-get update
 
-RUN apt-get install -y naxsi
+RUN apt-get install -y nginx-naxsi
 RUN apt-get install -y php7.0 php7.0-curl php7.0-gd php7.0-mbstring php7.0-imagick php7.0-mysql php7.0-simplexml php7.0-zip
 
 # Configure NGINX
