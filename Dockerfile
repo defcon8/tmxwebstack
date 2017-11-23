@@ -1,5 +1,10 @@
 FROM debian:8
+LABEL description="Complete secured server stack for TMX-Web"
+LABEL author="b.j.dewaard@tmx.nl"
 
+ENV PHP_VERSION 7.0
+
+# Start bootstrapping..
 RUN apt-get update
 RUN apt-get install -y wget curl apt-transport-https unzip
 
@@ -8,32 +13,47 @@ RUN echo 'deb http://packages.dotdeb.org jessie all' > /etc/apt/sources.list.d/d
 RUN curl http://www.dotdeb.org/dotdeb.gpg | apt-key add -
 
 RUN apt-get update
+RUN apt-get install -y nginx
+RUN apt-get install -y php$PHP_VERSION php$PHP_VERSION-fpm php$PHP_VERSION-curl php$PHP_VERSION-bz2 php$PHP_VERSION-gd php$PHP_VERSION-mbstring php$PHP_VERSION-mcrypt php$PHP_VERSION-json php$PHP_VERSION-intl php$PHP_VERSION-xml php$PHP_VERSION-xsl php$PHP_VERSION-simplexml php$PHP_VERSION-zip
 
-RUN apt-get install -y nginx-naxsi
-RUN apt-get install -y php7.0 php7.0-curl php7.0-gd php7.0-mbstring php7.0-imagick php7.0-mysql php7.0-simplexml php7.0-zip
+#  Configure PHP
+RUN ["bin/bash", "-c", "sed -i 's/max_execution_time\\s*=.*/max_execution_time=180/g' /etc/php/$PHP_VERSION/fpm/php.ini"]
+RUN ["bin/bash", "-c", "sed -i 's/upload_max_filesize\\s*=.*/upload_max_filesize=16M/g' /etc/php/$PHP_VERSION/fpm/php.ini"]
+RUN ["bin/bash", "-c", "sed -i 's/post_max_size\\s*=.*/post_max_size=16M/g' /etc/php/$PHP_VERSION/fpm/php.ini"]
 
-# Configure NGINX
-#RUN ["bin/bash", "-c", "sed -i 's/AllowOverride None/AllowOverride All\\nSetEnvIf X-Forwarded-Proto https HTTPS=on/g' /etc/apache2/apache2.conf"]
+# Install IONCube loader
+RUN wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+RUN tar xvfz ioncube_loaders_lin_x86-64.tar.gz
+RUN ["bin/bash", "-c", "cp ioncube/*.so /usr/lib/php/2*/"]
+RUN ["bin/bash", "-c", "cd /etc/php/$PHP_VERSION/fpm/conf.d && echo zend_extension = /usr/lib/php/2*/ioncube_loader_lin_$PHP_VERSION.so > 00-ioncube.ini"]
 
-# RUN service NGINX restart
+# NGINX Configuration
+# Remove the default NGINX virtualhost & symbolic link
+RUN rm -v /etc/nginx/sites-enabled/default
+RUN rm -v /etc/nginx/sites-available/default
+# Add our custom virtualhost
+ADD nginx/virtualhost.conf /etc/nginx/sites-available/default
+RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Configure PHP
-# RUN ["bin/bash", "-c", "sed -i 's/max_execution_time\\s*=.*/max_execution_time=180/g' /etc/php/7*/apache2/php.ini"]
-# RUN ["bin/bash", "-c", "sed -i 's/upload_max_filesize\\s*=.*/upload_max_filesize=16M/g' /etc/php/7*/apache2/php.ini"]
-# RUN ["bin/bash", "-c", "sed -i 's/memory_limit\\s*=.*/memory_limit=256M/g' /etc/php/7*/apache2/php.ini"]
-# RUN ["bin/bash", "-c", "sed -i 's/post_max_size\\s*=.*/post_max_size=20M/g' /etc/php/7*/apache2/php.ini"]
+# FPM Configuration
+RUN rm -v /etc/php/$PHP_VERSION/fpm/pool.d/www.conf
+ADD fpm/tmx.conf /etc/php/$PHP_VERSION/fpm/pool.d/tmx.conf
 
-# Install Ioncube loader
-# RUN wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
-# RUN tar xvfz ioncube_loaders_lin_x86-64.tar.gz
-# RUN ["bin/bash", "-c", "cp ioncube/*.so /usr/lib/php/2*/"]
-# RUN ["bin/bash", "-c", "cd /etc/php/7*/apache2/conf.d && echo zend_extension = /usr/lib/php/2*/ioncube_loader_lin_7.0.so > 00-ioncube.ini"]
-# RUN service nginx restart
+# Create content serve directory
+RUN mkdir /tmxweb
+RUN chown -R www-data:www-data /tmxweb
 
-# Configure Nginx
-# RUN chown -R www-data:www-data /var/www
+# Construct web server content
+RUN touch /tmxweb/index.php
+RUN echo "<?php phpinfo();" > /tmxweb/index.php
 
-# EXPOSE 80
-# EXPOSE 443
+# Expose ports
+EXPOSE 80
 
-# CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+# Mount /tmxweb to allow user to inject the TMX-Web code
+VOLUME ["/tmxweb"]
+
+# Create entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod 755 /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
