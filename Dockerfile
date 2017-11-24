@@ -2,7 +2,7 @@ FROM debian:8
 LABEL description="Complete secured server stack for TMX-Web"
 LABEL author="b.j.dewaard@tmx.nl"
 
-ENV PHP_VERSION 7.0
+ENV PHP_VERSION 7.1
 
 # Start bootstrapping..
 RUN apt-get update
