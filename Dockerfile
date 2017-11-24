@@ -6,11 +6,15 @@ ENV PHP_VERSION 7.1
 
 # Start bootstrapping..
 RUN apt-get update
-RUN apt-get install -y wget curl apt-transport-https unzip
+RUN apt-get install -y wget curl apt-transport-https unzip lsb-release ca-certificates
 
 # Add dotdeb to APT sources list
 RUN echo 'deb http://packages.dotdeb.org jessie all' > /etc/apt/sources.list.d/dotdeb.list
 RUN curl http://www.dotdeb.org/dotdeb.gpg | apt-key add -
+
+# Add PHP 7.1 repository to APT sources list
+RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+RUN echo 'deb https://packages.sury.org/php/ jessie main' > /etc/apt/sources.list.d/php.list
 
 RUN apt-get update
 RUN apt-get install -y nginx
