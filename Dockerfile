@@ -43,19 +43,11 @@ RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 RUN rm -v /etc/php/$PHP_VERSION/fpm/pool.d/www.conf
 ADD fpm/tmx.conf /etc/php/$PHP_VERSION/fpm/pool.d/tmx.conf
 
-# Create content serve directory
-RUN mkdir /tmxweb
-RUN chown -R www-data:www-data /tmxweb
-
-# Construct web server content
-RUN touch /tmxweb/index.php
-RUN echo "<?php phpinfo();" > /tmxweb/index.php
-
 # Expose ports
 EXPOSE 80
 
 # Mount /tmxweb to allow user to inject the TMX-Web code
-VOLUME ["/tmxweb"]
+VOLUME ["/jail/var/tmxweb"]
 
 # Create entrypoint
 COPY entrypoint.sh /entrypoint.sh
