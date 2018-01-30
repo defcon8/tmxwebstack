@@ -41,7 +41,9 @@ function create_chroot {
 function create_directory_structure {
     echo "Creating directory structure.."
     mkdir -p $JAIL/var/tmxweb/tmp
+    mkdir -p $JAIL/var/tmxweb/sessions
     chmod 775 $JAIL/var/tmxweb/tmp
+    chmod 775 $JAIL/var/tmxweb/sessions
     chown -R www-data:www-data $JAIL/var/tmxweb
 }
 
