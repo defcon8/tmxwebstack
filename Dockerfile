@@ -12,13 +12,14 @@ RUN apt-get install -y wget curl apt-transport-https unzip lsb-release ca-certif
 RUN echo 'deb http://packages.dotdeb.org jessie all' > /etc/apt/sources.list.d/dotdeb.list
 RUN curl http://www.dotdeb.org/dotdeb.gpg | apt-key add -
 
-# Add PHP 7.1 repository to APT sources list
+# Add PHP repository to APT sources list
 RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 RUN echo 'deb https://packages.sury.org/php/ jessie main' > /etc/apt/sources.list.d/php.list
 
 RUN apt-get update
 RUN apt-get install -y nginx
 RUN apt-get install -y php$PHP_VERSION php$PHP_VERSION-fpm php$PHP_VERSION-curl php$PHP_VERSION-bz2 php$PHP_VERSION-gd php$PHP_VERSION-mbstring php$PHP_VERSION-mcrypt php$PHP_VERSION-json php$PHP_VERSION-intl php$PHP_VERSION-xml php$PHP_VERSION-xsl php$PHP_VERSION-simplexml php$PHP_VERSION-zip
+RUN apt-get mono-complete
 
 #  Configure PHP
 RUN ["bin/bash", "-c", "sed -i 's/max_execution_time\\s*=.*/max_execution_time=180/g' /etc/php/$PHP_VERSION/fpm/php.ini"]
@@ -46,7 +47,7 @@ ADD fpm/tmx.conf /etc/php/$PHP_VERSION/fpm/pool.d/tmx.conf
 # Expose ports
 EXPOSE 80
 
-# Mount /tmxweb to allow user to inject the TMX-Web code
+# Mount path as volume to allow user to inject the TMX-Web code
 VOLUME ["/jail/var/tmxweb"]
 
 # Create entrypoint
