@@ -18,7 +18,7 @@ RUN echo 'deb https://packages.sury.org/php/ jessie main' > /etc/apt/sources.lis
 
 RUN apt-get update
 RUN apt-get install -y nginx
-RUN apt-get install -y php$PHP_VERSION php$PHP_VERSION-fpm php$PHP_VERSION-curl php$PHP_VERSION-bz2 php$PHP_VERSION-gd php$PHP_VERSION-mbstring php$PHP_VERSION-mcrypt php$PHP_VERSION-json php$PHP_VERSION-intl php$PHP_VERSION-xml php$PHP_VERSION-xsl php$PHP_VERSION-simplexml php$PHP_VERSION-zip
+RUN apt-get install -y php$PHP_VERSION php$PHP_VERSION-fpm php$PHP_VERSION-curl php$PHP_VERSION-bz2 php$PHP_VERSION-gd php$PHP_VERSION-mbstring php$PHP_VERSION-mysqli php$PHP_VERSION-mcrypt php$PHP_VERSION-json php$PHP_VERSION-intl php$PHP_VERSION-xml php$PHP_VERSION-xsl php$PHP_VERSION-simplexml php$PHP_VERSION-zip
 RUN apt-get install -y mono-complete
 
 #  Configure PHP
